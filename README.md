@@ -34,7 +34,7 @@ composer require rhishi-kesh/quick-talk
 ```
 Run the installer:
 ```php
-php artisan quicktalk:install
+php artisan install:quicktalk
 ```
 Follow the interactive prompts to choose:
 - Broadcasting stack (Reverb / Pusher)
@@ -85,13 +85,7 @@ Open bootstrap/app.php and add:
 5️⃣ Enable Broadcasting Routes <br>
 Still in bootstrap/app.php, add:
 ```php
-->withBroadcasting(
-    __DIR__ . '/../routes/channels.php',
-    [
-        'prefix' => 'api',
-        'middleware' => ['auth:sanctum'],
-    ]
-)
+->withBroadcasting(__DIR__ . '/../routes/channels.php', ['prefix' => 'api', 'middleware' => ['auth:sanctum']],)
 ```
 6️⃣ User Model Configuration <br>
 Update your App\Models\User model <br>
@@ -199,6 +193,64 @@ npm run dev
 ```
 ```php
 php artisan reverb:start
+```
+### 📌 Setup Echo Js on your frontend
+In your frontend, configure Laravel Echo to connect to WebSockets.
+```js
+<script src="https://cdn-script.com/ajax/libs/jquery/3.7.1/jquery.min.js" type="text/javascript"></script>
+<script>
+    $(document).ready(function() {
+        Echo.private('chat-channel.' + 1).listen('.message.event', (e) => {
+            console.log('Message Receive:', e);
+        })
+
+        Echo.private('conversation-channel.' + 1).listen('.conversation.event', (e) => {
+            console.log('Conversation and Unread Message count:', e);
+        })
+
+        Echo.join('online-status-channel')
+            .here(users => {
+                console.log('Active Users:', [users]);
+            })
+            .joining(user => {
+                console.log('User Joined:', [user]);
+            })
+            .leaving(user => {
+                console.log('User Left:', [user]);
+            });
+
+        const typingInput = document.getElementById('typingInput');
+        const typingImage = document.getElementById('typingImage');
+
+        let typingTimeout;
+
+        // Send typing event when user types
+        typingInput.addEventListener('input', function () {
+            Echo.private('typing-indicator-channel.1')
+                .whisper('typing', { user: 'RKB' });
+
+            console.log('Typing Indicator Sent');
+        });
+
+        // Listen for typing event from others
+        Echo.private('typing-indicator-channel.1')
+            .listenForWhisper('typing', (e) => {
+                console.log('Typing Indicator Received:', e.user);
+
+                // Show typing image
+                typingImage.style.display = 'block';
+
+                // Clear previous timeout if user keeps typing
+                clearTimeout(typingTimeout);
+
+                // Hide typing image 2 seconds after last typing event
+                typingTimeout = setTimeout(() => {
+                    typingImage.style.display = 'none';
+                }, 1000);
+            });
+
+    });
+</script>
 ```
 ### 📁 API Routes
 You Can Explore the API documentation from Here (https://documenter.getpostman.com/view/39612169/2sB34kDeK1)
