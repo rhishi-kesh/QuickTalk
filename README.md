@@ -30,7 +30,7 @@ It provides private messaging, group chat, typing indicators, reactions, attachm
 ### 🚀 Installation
 Install via Composer:
 ```php
-composer require rhishikesh/quicktalk
+composer require rhishi-kesh/quick-talk
 ```
 Run the installer:
 ```php
